@@ -84,11 +84,11 @@ def randomize(state, depth):
 problem = (
     6, 2, 1, 8, 1, 3, 5, 9, 3,
     8, 6, 6, 4, 3, 9, 5, 7, 3, 7, 8, 4,
-    9, 7, 9, 2, 6, 3, 4, 4, 2, 9, 1, 8,
+    9, 7, 9, 2, 6, 3, 4, 4, 2, 6, 1, 8,
     7, 7, 2, 2, 8, 7, 9, 2, 9, 6, 5, 5,
     4, 5, 1, 4, 5, 1, 8, 3, 1)
 
-depth = 5
+depth = 11
 
 print('Start state:')
 print(fmt.fmt_cube(problem))
