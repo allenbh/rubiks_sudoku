@@ -118,6 +118,10 @@ def sym_of_v(v):
   except:
     return 0
 
+def print_extra(goal):
+  print(fmt.fmt_cube(
+    tuple(map(sym_of_v, goal))))
+
 def satisfy_goals(goal,
     corner_cl, corner_vals,
     edge_cl, edge_vals):
@@ -125,8 +129,7 @@ def satisfy_goals(goal,
   if not cube_satisfied(goal):
     return
 
-  print(fmt.fmt_cube(
-    tuple(map(sym_of_v, goal))))
+#  print_extra(goal)
 
   if not corner_cl and not edge_cl:
     yield tuple(goal)
@@ -191,21 +194,26 @@ def compute_goals(state):
       corner_cl, corner_vals,
       edge_cl, edge_vals)
 
+def main():
 
-problem = (
-    (6, 8), (2, 7), (1, 2), (8, 5), (1, None), (3, 5), (5, 6), (9, 5), (3, 0),
-    (8, 6), (6, 3), (6, 6), (4, 8), (3, 7), (9, 6), (5, 9), (7, 3), (3, 0), (7, 6), (8, 1), (4, 8),
-    (9, 1), (7, None), (9, 7), (2, 3), (6, None), (3, 5), (4, 1), (4, None), (2, 7), (6, 7), (1, None), (8, 7),
-    (7, 2), (7, 1), (2, 2), (2, 2), (8, 3), (7, 2), (9, 8), (2, 3), (9, 0), (6, 2), (5, 1), (5, 6),
-    (4, 0), (5, 5), (1, 0), (4, 3), (5, None), (1, 5), (8, 8), (3, 1), (1, 0))
+  problem = (
+      (6, 8), (2, 7), (1, 2), (8, 5), (1, None), (3, 5), (5, 6), (9, 5), (3, 0),
+      (8, 6), (6, 3), (6, 6), (4, 8), (3, 7), (9, 6), (5, 8), (7, 3), (3, 0), (7, 6), (8, 1), (4, 8),
+      (9, 1), (7, None), (9, 7), (2, 3), (6, None), (3, 5), (4, 1), (4, None), (2, 7), (6, 7), (1, None), (8, 7),
+      (7, 2), (7, 1), (2, 2), (2, 2), (8, 3), (7, 2), (9, 8), (2, 3), (9, 0), (6, 2), (5, 1), (5, 6),
+      (4, 0), (5, 5), (1, 0), (4, 3), (5, None), (1, 5), (8, 8), (3, 1), (1, 0))
 
-goals = compute_goals(problem)
-seen = set()
+  goals = compute_goals(problem)
+  seen = set()
 
-print('Goals:')
-for g in goals:
-  if g in seen:
-    continue
-  seen.add(g)
-  print(fmt.fmt_cube(g))
+  print('Goals:')
+  for g in goals:
+    if g in seen:
+      continue
+    seen.add(g)
+    g = tuple(map(lambda v: v[0], g))
+    print(fmt.fmt_cube(g))
+
+if __name__ == '__main__':
+  main()
 
