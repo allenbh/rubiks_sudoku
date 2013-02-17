@@ -16,6 +16,8 @@ def solve(goals, state):
     path.append(step)
     step = goals[step[1]]
 
+  path.reverse()
+
   return path
 
 
@@ -60,7 +62,8 @@ def deep_search_2d(state, goal, depth):
     print('expanded nodes:', len(closed_1), file=sys.stderr)
     print('cpu seconds:', time.clock() - start, file=sys.stderr)
     if result is not None:
-      return list(reversed(result))
+      result.reverse()
+      return result
 
     print('search 2 at depth:', depth_i, file=sys.stderr)
     start = time.clock()
@@ -85,7 +88,7 @@ problem = (
     7, 7, 2, 2, 8, 7, 9, 2, 9, 6, 5, 5,
     4, 5, 1, 4, 5, 1, 8, 3, 1)
 
-depth = 11
+depth = 5
 
 print('Start state:')
 print(fmt.fmt_cube(problem))
