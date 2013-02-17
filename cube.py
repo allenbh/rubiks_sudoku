@@ -18,6 +18,12 @@ def invert(trans):
   '''Compute the inverse transformation indices'''
   return turn(turn(trans, trans), trans)
 
+def invert_sym(sym):
+  '''Return the symbol of the inverse transformation'''
+  if len(sym) == 1:
+    return sym + "'"
+  return sym[0]
+
 # Faces:
 #           U  U  U
 #           U  U  U
