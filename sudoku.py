@@ -116,6 +116,7 @@ orient_3 = cube.turn(orient_2, cube.face_cw)
 orients = (orient_0, orient_1, orient_2, orient_3)
 
 def orient_goal(goal):
+  '''Record the orientation of each face'''
   if orient_key is None:
     return goal
 
@@ -137,6 +138,7 @@ def orient_goal(goal):
 def satisfy_goals(goal,
     corner_cl, corner_vals,
     edge_cl, edge_vals):
+  '''Find configurations that satisfy the sudoku constraint on each side'''
 
   if not cube_satisfied(goal):
     return
@@ -175,6 +177,7 @@ def satisfy_goals(goal,
     corner_cl.insert(0, cc)
 
 def compute_goals(state):
+  '''Find configurations that satisfy the sudoku constraint on each side'''
 
   center_vals = cube.turn(state, centers)
 
@@ -200,11 +203,10 @@ def compute_goals(state):
   edge_vals = list(edge_vals)
   random.shuffle(edge_vals)
 
-  for g in satisfy_goals(partial_goal,
+  return satisfy_goals(partial_goal,
       corner_cl, corner_vals,
-      edge_cl, edge_vals):
-    yield g
-    
+      edge_cl, edge_vals)
+
 
 if __name__ == '__main__':
 
