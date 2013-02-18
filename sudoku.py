@@ -3,6 +3,8 @@ import cube
 import fmt
 import itertools
 import random
+from copy import deepcopy
+from operator import itemgetter
 
 # Indices:
 #           0  1  2
@@ -15,18 +17,24 @@ import random
 #          48 49 50
 #          51 52 53
 
+val_key = 0
+pos_key = 1
+orient_key = None
+index_key = None
+
 def side_satisfied(side):
   '''Values occur at most once in the correct position'''
 
   seen = set()
   orient = None
+  orient_index = None
 
   for (i, val) in enumerate(side):
     if val is not None:
 
       #(face_val, face_pos) = val
-      face_val = val[0]
-      face_pos = val[1]
+      face_val = val[val_key]
+      face_pos = val[pos_key]
 
       if face_pos is not None:
         if orient is None:
@@ -89,7 +97,7 @@ edge_cubelets = (
     (40, 50),
     (43, 52))
 
-# Center Orientation:
+# Face Orientations:
 #  -  0  -
 #  3  -  1
 #  -  2  -
@@ -107,9 +115,24 @@ orient_3 = cube.turn(orient_2, cube.face_cw)
 
 orients = (orient_0, orient_1, orient_2, orient_3)
 
-# Problem Definition: (each face)
-#   corner and edge values: (face_val, face_pos)
-#   center values: (face_val, None)
+def orient_goal(goal):
+  if orient_key is None:
+    return goal
+
+  goal = deepcopy(goal)
+
+  for face in cube.faces:
+    side = cube.turn(goal, face)
+    orient_index = None
+    for (i, o) in enumerate(orients):
+      if o[0] == side[0][pos_key]:
+        orient_index = i
+        break
+    for v in side:
+      v[orient_key] = orient_index
+
+  return goal
+
 
 def satisfy_goals(goal,
     corner_cl, corner_vals,
@@ -119,7 +142,7 @@ def satisfy_goals(goal,
     return
 
   if not corner_cl and not edge_cl:
-    yield tuple(goal)
+    yield tuple(orient_goal(goal))
 
   elif edge_cl:
     ec = edge_cl.pop(0)
@@ -155,9 +178,9 @@ def compute_goals(state):
 
   center_vals = cube.turn(state, centers)
 
-  goal = [None]*54
+  partial_goal = [None]*54
   for (i,v) in zip(centers, center_vals):
-    goal[i] = v
+    partial_goal[i] = v
 
   corner_cl = list(corner_cubelets)
 
@@ -177,47 +200,82 @@ def compute_goals(state):
   edge_vals = list(edge_vals)
   random.shuffle(edge_vals)
 
-  return satisfy_goals(goal,
+  for g in satisfy_goals(partial_goal,
       corner_cl, corner_vals,
-      edge_cl, edge_vals)
+      edge_cl, edge_vals):
+    yield g
+    
 
-def sym_of(index, default=-1):
-  def fun(v):
-    try:
-      val = v[index]
-      if val is not None:
-        return val
-      return default
-    except:
-      return default
-  return fun
+if __name__ == '__main__':
 
-def main():
+  # Problem Definition:
+  #   corner and edge values: (face_val, oriented face_pos)
+  #   center values: (face_val, None)
+  #
+  #   face_val - the number printed on the sticker
+  #   face_pos - where on the face the number appears when it is oriented
+  #               (When number is in the natural orientation, top-side-up,
+  #                 where does it appear on the cube face?
+  #                 - upper left, right edge, etc.
+  #                 - the value is the corresponding number in orientation zero
 
   problem = (
-      (6, 8), (2, 7), (1, 2), (8, 5), (1, None), (3, 5), (5, 6), (9, 5), (3, 0),
-      (8, 6), (6, 3), (6, 6), (4, 8), (3, 7), (9, 6), (5, 8), (7, 3), (3, 0), (7, 6), (8, 1), (4, 8),
-      (9, 1), (7, None), (9, 7), (2, 3), (6, None), (3, 5), (4, 1), (4, None), (2, 7), (6, 7), (1, None), (8, 7),
-      (7, 2), (7, 1), (2, 2), (2, 2), (8, 3), (7, 2), (9, 8), (2, 3), (9, 0), (6, 2), (5, 1), (5, 6),
-      (4, 0), (5, 5), (1, 0), (4, 3), (5, None), (1, 5), (8, 8), (3, 1), (1, 0))
+      (6, 8), (3, 7), (5, 6), (8, 3), (7, None), (3, 5), (6, 6), (9, 7), (5, 8),
+      (8, 6), (5, 5), (4, 8), (5, 6), (2, 3), (3, 0), (9, 6), (7, 3), (8, 8), (7, 2), (9, 5), (4, 8),
+      (9, 1), (1, None), (2, 7), (6, 7), (1, None), (5, 1), (3, 1), (5, None), (2, 7), (8, 1), (6, None), (8, 7),
+      (3, 0), (6, 3), (7, 2), (9, 8), (3, 5), (2, 2), (4, 0), (1, 5), (6, 2), (1, 0), (4, 3), (7, 6),
+      (1, 0), (4, 1), (2, 2), (8, 5), (4, None), (2, 3), (1, 2), (7, 1), (9, 0))
 
-  problem = tuple(map(lambda v: v[1]+(v[0],), enumerate(problem)))
+
+  # Extend the problem definition for extra analysis
+
+  val_key = 'val'
+  pos_key = 'pos'
+  orient_key = 'orient'
+  index_key = 'index'
+
+  problem = tuple(map(
+    lambda v: {
+      val_key : v[1][0],
+      pos_key : v[1][1],
+      index_key : v[0]},
+    enumerate(problem)))
+
 
   goals = list(compute_goals(problem))
-  seen = set()
 
   print('Goals:')
+  seen = set()
   for g in goals:
-    g = tuple(map(sym_of(0), g))
+    g = tuple(map(itemgetter(val_key), g))
     if g in seen:
       continue
     seen.add(g)
     print(fmt.fmt_cube(g))
     print()
 
-  print('Orients:')
+  def default(n):
+    def fun(x):
+      if x is None:
+        return n
+      return x
+    return fun
+
+  print('Face Positions:')
+  seen = set()
   for g in goals:
-    g = tuple(map(sym_of(1,4), g))
+    g = map(itemgetter(pos_key), g)
+    g = tuple(map(default(4), g))
+    if g in seen:
+      continue
+    seen.add(g)
+    print(fmt.fmt_cube(g))
+    print()
+
+  print('Face Orientations:')
+  seen = set()
+  for g in goals:
+    g = tuple(map(itemgetter(orient_key), g))
     if g in seen:
       continue
     seen.add(g)
@@ -229,32 +287,31 @@ def main():
     state = tuple((table[i] for i in range(54)))
     return state
 
-  print('Indices:')
+  print('Inverted indices:')
+  seen = set()
   for g in goals:
-    g = invert(map(sym_of(2), g))
+    g = invert(map(itemgetter(index_key), g))
     if g in seen:
       continue
     seen.add(g)
     print(fmt.fmt_cube(g))
     print()
 
-  face_lift = (
+  face_tbl = (
       1, 1, 1, 1, 1, 1, 1, 1, 1,
       2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5,
       2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5,
       2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5,
       6, 6, 6, 6, 6, 6, 6, 6, 6)
 
-  print('Rubix Equivalent:')
+  print('Rubiks Equivalent:')
+  seen = set()
   for g in goals:
-    g = invert(map(sym_of(2), g))
-    g = tuple(map(face_lift.__getitem__, g))
+    g = invert(map(itemgetter(index_key), g))
+    g = tuple(map(face_tbl.__getitem__, g))
     if g in seen:
       continue
     seen.add(g)
     print(fmt.fmt_cube(g))
     print()
-
-if __name__ == '__main__':
-  main()
 
