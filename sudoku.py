@@ -24,7 +24,9 @@ def side_satisfied(side):
   for (i, val) in enumerate(side):
     if val is not None:
 
-      (face_val, face_pos) = val
+      #(face_val, face_pos) = val
+      face_val = val[0]
+      face_pos = val[1]
 
       if face_pos is not None:
         if orient is None:
@@ -109,27 +111,12 @@ orients = (orient_0, orient_1, orient_2, orient_3)
 #   corner and edge values: (face_val, face_pos)
 #   center values: (face_val, None)
 
-def sym_of_v(v):
-  try:
-    try:
-      return v[0] + 10*v[1]
-    except:
-      return v[0]
-  except:
-    return 0
-
-def print_extra(goal):
-  print(fmt.fmt_cube(
-    tuple(map(sym_of_v, goal))))
-
 def satisfy_goals(goal,
     corner_cl, corner_vals,
     edge_cl, edge_vals):
 
   if not cube_satisfied(goal):
     return
-
-#  print_extra(goal)
 
   if not corner_cl and not edge_cl:
     yield tuple(goal)
@@ -194,6 +181,17 @@ def compute_goals(state):
       corner_cl, corner_vals,
       edge_cl, edge_vals)
 
+def sym_of(index, default=-1):
+  def fun(v):
+    try:
+      val = v[index]
+      if val is not None:
+        return val
+      return default
+    except:
+      return default
+  return fun
+
 def main():
 
   problem = (
@@ -203,16 +201,59 @@ def main():
       (7, 2), (7, 1), (2, 2), (2, 2), (8, 3), (7, 2), (9, 8), (2, 3), (9, 0), (6, 2), (5, 1), (5, 6),
       (4, 0), (5, 5), (1, 0), (4, 3), (5, None), (1, 5), (8, 8), (3, 1), (1, 0))
 
-  goals = compute_goals(problem)
+  problem = tuple(map(lambda v: v[1]+(v[0],), enumerate(problem)))
+
+  goals = list(compute_goals(problem))
   seen = set()
 
   print('Goals:')
   for g in goals:
+    g = tuple(map(sym_of(0), g))
     if g in seen:
       continue
     seen.add(g)
-    g = tuple(map(lambda v: v[0], g))
     print(fmt.fmt_cube(g))
+    print()
+
+  print('Orients:')
+  for g in goals:
+    g = tuple(map(sym_of(1,4), g))
+    if g in seen:
+      continue
+    seen.add(g)
+    print(fmt.fmt_cube(g))
+    print()
+
+  def invert(g):
+    table = {v:i for (i,v) in enumerate(g)}
+    state = tuple((table[i] for i in range(54)))
+    return state
+
+  print('Indices:')
+  for g in goals:
+    g = invert(map(sym_of(2), g))
+    if g in seen:
+      continue
+    seen.add(g)
+    print(fmt.fmt_cube(g))
+    print()
+
+  face_lift = (
+      1, 1, 1, 1, 1, 1, 1, 1, 1,
+      2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5,
+      2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5,
+      2, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 5,
+      6, 6, 6, 6, 6, 6, 6, 6, 6)
+
+  print('Rubix Equivalent:')
+  for g in goals:
+    g = invert(map(sym_of(2), g))
+    g = tuple(map(face_lift.__getitem__, g))
+    if g in seen:
+      continue
+    seen.add(g)
+    print(fmt.fmt_cube(g))
+    print()
 
 if __name__ == '__main__':
   main()
