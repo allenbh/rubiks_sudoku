@@ -1,0 +1,32 @@
+This software is released in the public domain.  See LICENSE.
+
+This software was originally written in 2013 by Allen Hubbe.
+
+I wrote this simple solver because I received a Sudoku cube as a gift.
+
+Thanks Philip!
+
+A Sudoku cube is like a Rubik's cube, except each square has a number, and the
+cube is solved by having each number appear exactly once on each side.
+
+Let's not get too picky about names here, but yes Rubik's is a brand name, and
+not all cubes are made by Rubik's.  When I talk about Rubik's cubes, I mean
+cubes that look like and can be manipulated the same way a traditional Rubik's
+cube.
+
+To use the program, yes you do need to edit the source code, because I didn't
+write any support for reading start states from a file.  The start state is
+coded in search.py, for searching, and sudoku.py, for solving the goal state.
+Getting the start state coded right can be tricky!  If the solver can't find a
+solution, try putting the Rubik's equivalent problem in one of the faster
+Rubik's solvers, then walk through the solution with walk.py.  That's what I
+did the first time :).  There are some good Rubik's solvers out there.
+
+Each number also has an orientation (i.e. which side should be up), so this is
+equivalent to a Rubik's picture cube.  This solver uses the orientation to
+quickly find the goal state, then uses bidirectional search to find an optimal
+solution.  The solution doesn't track orientation, so it is possible to arrive
+to a solution where the center squares on each side are oriented wrong.  In
+this case, you can find instructions on the web for rotating the center squares
+on a picture cube.
+
